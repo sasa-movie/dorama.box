@@ -1,4 +1,6 @@
 // Вставьте сюда вашу ссылку от Vercel (обязательно БЕЗ косой черты "/" на конце)
+curl "api_endpoint_here"
+  -H "mdl-api-key: [https://my-drama-list-unofficial-api-livid.vercel.app]"
 const API_URL = "https://my-drama-list-unofficial-api-livid.vercel.app"; 
 
 // Находим элементы на странице (проверьте, чтобы ID совпадали с вашим index.html)
