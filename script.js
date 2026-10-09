@@ -1,50 +1,85 @@
-const API_URL = "https://my-drama-list-unofficial-api-livid.vercel.app"; 
+// Элементы страницы
+const catalog = document.getElementById('catalog');
+const searchInput = document.getElementById('search');
+const modal = document.getElementById('player-modal');
+const modalTitle = document.getElementById('modal-title');
+const videoPlayer = document.getElementById('video-player');
+const closeBtn = document.querySelector('.close-btn');
 
-// Находим элементы на странице (проверьте, чтобы ID совпадали с вашим index.html)
-const searchInput = document.querySelector('.search-input') || document.querySelector('input[type="text"]');
-const resultsContainer = document.getElementById('results-container') || document.body; // куда вставлять результаты
+let allDoramas = [];
 
-// Функция, которая делает запрос к вашему API
-async function searchDorama(query) {
-    if (!query.trim()) return; // Если строка пустая, ничего не делаем
+// Выводит карточки дорам в каталог
+function renderCatalog(list) {
+    catalog.innerHTML = '';
 
+    if (list.length === 0) {
+        const message = document.createElement('p');
+        message.textContent = 'Ничего не найдено';
+        message.style.cssText = 'color: white; padding: 20px;';
+        catalog.appendChild(message);
+        return;
+    }
+
+    list.forEach(dorama => {
+        const card = document.createElement('div');
+        card.className = 'dorama-card';
+
+        const img = document.createElement('img');
+        img.src = dorama.image || '';
+        img.alt = dorama.title || '';
+
+        const title = document.createElement('h3');
+        title.textContent = dorama.title || 'Без названия';
+
+        card.appendChild(img);
+        card.appendChild(title);
+        card.addEventListener('click', () => openPlayer(dorama));
+        catalog.appendChild(card);
+    });
+}
+
+// Открывает окно плеера с выбранной дорамой
+function openPlayer(dorama) {
+    modalTitle.textContent = dorama.title || '';
+    videoPlayer.src = dorama.video || '';
+    modal.classList.remove('hidden');
+}
+
+// Закрывает окно и останавливает видео
+function closePlayer() {
+    modal.classList.add('hidden');
+    videoPlayer.src = '';
+}
+
+closeBtn.addEventListener('click', closePlayer);
+
+// Закрытие по клику на тёмный фон вокруг окна
+modal.addEventListener('click', (event) => {
+    if (event.target === modal) closePlayer();
+});
+
+// Поиск по названию: фильтрует при каждом изменении текста
+searchInput.addEventListener('input', () => {
+    const query = searchInput.value.trim().toLowerCase();
+    const filtered = allDoramas.filter(dorama =>
+        (dorama.title || '').toLowerCase().includes(query)
+    );
+    renderCatalog(filtered);
+});
+
+// Загружает список из movies.json
+async function loadDoramas() {
     try {
-        // Делаем запрос к эндпоинту поиска MyDramaList API
-        const response = await fetch(`${API_URL}/search?q=${encodeURIComponent(query)}`);
-        const doramas = await response.json();
-
-        // Очищаем контейнер перед выводом новых результатов
-        resultsContainer.innerHTML = ""; 
-
-        if (doramas.length === 0) {
-            resultsContainer.innerHTML = "<p style='color: white; padding: 20px;'>Ничего не найдено</p>";
-            return;
+        const response = await fetch('movies.json');
+        if (!response.ok) {
+            throw new Error(`movies.json не найден, статус ${response.status}`);
         }
-
-        // Выводим каждую дораму на экран
-        doramas.forEach(dorama => {
-            const card = document.createElement('div');
-            card.className = 'dorama-card'; // Стили для карточки настройте в style.css
-            
-            card.innerHTML = `
-                <div style="color: white; margin: 10px; padding: 10px; background: #1a1a1a; border-radius: 8px;">
-                    <img src="${dorama.image}" alt="${dorama.title}" style="max-width: 150px; display: block; border-radius: 4px;">
-                    <h3 style="margin: 5px 0 0 0; font-size: 16px;">${dorama.title}</h3>
-                </div>
-            `;
-            resultsContainer.appendChild(card);
-        });
-
+        allDoramas = await response.json();
+        renderCatalog(allDoramas);
     } catch (error) {
-        console.error("Ошибка при поиске:", error);
+        console.error('Ошибка загрузки каталога:', error);
+        catalog.innerHTML = '<p style="color: white; padding: 20px;">Не удалось загрузить каталог</p>';
     }
 }
 
-// Отслеживаем нажатие клавиши Enter в поисковой строке
-if (searchInput) {
-    searchInput.addEventListener('keypress', (event) => {
-        if (event.key === 'Enter') {
-            searchDorama(searchInput.value);
-        }
-    });
-}
+loadDoramas();
