@@ -1,1 +1,12 @@
-
+[
+  {
+    "title": "Название первой дорамы",
+    "image": "https://example.com/картинка1.jpg",
+    "video": "https://example.com/видео1"
+  },
+  {
+    "title": "Название второй дорамы",
+    "image": "https://example.com/картинка2.jpg",
+    "video": "https://example.com/видео2"
+  }
+]
